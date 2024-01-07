@@ -32,7 +32,6 @@ class ClassRectangle {
         this.name = name;
         this.variables = variables;
     }
-
     x = 0;
     y = 0;
     width = 100;
