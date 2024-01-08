@@ -2,7 +2,6 @@ class Variable {
   constructor(name, type, symbol) {
     this.name = name;
     this.type = type;
-    this.visibility = visibility;
     this.symbol = symbol;
   }
 
@@ -43,7 +42,15 @@ class ClassRectangle {
   height = 100;
 
   setSize() {
-    this.height += (functions.length + variables.length) * 30;
+    this.height += (variables.length) * 10;
+  }
+
+  setX(multiplier) {
+    this.x = (this.x + this.width + 10) * multiplier;
+  }
+
+  addVariables(variables) {
+    this.variables = variables;
   }
 }
 
@@ -56,7 +63,7 @@ const rawCode = data.code;
 let isInClass = false;
 let curlies = 0;
 let classes = [];
-let variables = {};
+let variables = [];
 let functions = {};
 let c = document.getElementById("myCanvas");
 let pen = c.getContext("2d");
@@ -81,7 +88,7 @@ function cleanCode(txtarray) {
 
 //___________________________Erkennung_____________________________________________
 function detectVariable(codeline) {
-  let code = codeline.split("=")[0].trim().split(" ");
+  let code = codeline.split("=")[0].trim();
   if (
     code.includes("{") ||
     code.includes("}") ||
@@ -157,21 +164,33 @@ function extractClass(codeline) {
 
 //______________________DRAWING______________________
 
-function drawStart(name) {
-  pen.rect(1, 1, 200, 200);
-  pen.rect(0, 0, 100, 20);
-  pen.fillText(name, 30, 70);
+function drawClass(name, width, height, x, y) {
+  pen.rect(x, y, width, height);
+  pen.rect(x, y, width, 20);
+  pen.textAlign = "center";
+  pen.fillText(name, x + width/2, 10);
+  pen.textAlign = "start";
   pen.stroke();
+}
+
+function drawText(text, x, y, pad) {
+    pen.fillText(text,x,y+pad);
+}
+
+function moveClassRectangle(classes) {
+
 }
 
 //_________________________________________________________
 
 let codeLines = cleanCode(splitCode(rawCode));
 
+let multiplier = 0;
+
 for (let code of codeLines) {
   if (detectVariable(code)) {
     varInfos = extractVariableInfos(code);
-    variables.push(new Variable(varInfos[0]))
+    variables.push(new Variable(varInfos[2],varInfos[1], varInfos[0]));
   }
   if (detectClass(code)) {
     infos = extractClass(code);
@@ -180,6 +199,14 @@ for (let code of codeLines) {
 }
 
 for (let c of classes) {
-  console.log(c);
-  drawStart(c.name);
+    c.setX(multiplier);
+    c.addVariables(variables);
+    c.setSize();
+    console.log(c.height);
+    drawClass(c.name, c.width,c.height, c.x, c.y);
+    for (let i = 0; i < variables.length; i++) {
+        drawText(variables[i].printVariable(),c.x+5,c.y+30,10*i);
+    }
+    multiplier++;
 }
+
